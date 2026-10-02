@@ -211,7 +211,6 @@ class EntropySearch:
     ):
         # Search spectra
         file_query = Path(file_query)
-        all_results = []
         self.status = {
             "ready": False,
             "running": True,
@@ -248,7 +247,6 @@ class EntropySearch:
             "error": False,
             "message": f"",
         }
-        return all_results
 
     def load_spectral_library(self, file_library) -> None:
         file_library = Path(file_library)
