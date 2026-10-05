@@ -89,6 +89,10 @@ export default () => {
 
     const [stateSelectedFields, setStateSelectedFields] = useState([]);
 
+    // Field to group on. Ignored if the current results do not have that field.
+    const [stateGroupBy, setStateGroupBy] = useState(undefined);
+    const groupBy = stateAvailableFields.includes(stateGroupBy) ? stateGroupBy : undefined;
+
     ////////////////////////////////////////////////////////////////////////////////
     // Fixed columns plus one column per selected extra field
     const columns = useMemo(() => [
@@ -166,6 +170,18 @@ export default () => {
                         key: "hybrid_search", label: "Hybrid search",
                         disabled: ((getAtomSearchScore || {}).hybrid_search || []).length === 0
                     }]} />
+                <Select
+                    allowClear
+                    showSearch
+                    style={{ width: '100%', marginTop: 8 }}
+                    placeholder="Group by (no grouping)"
+                    value={groupBy}
+                    onChange={setStateGroupBy}
+                    options={stateAvailableFields.map(f => ({
+                        label: f.replace(/^library-/, ""),
+                        value: f,
+                    }))}
+                />
                 <Select
                     mode="multiple"
                     allowClear
