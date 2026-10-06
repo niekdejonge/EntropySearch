@@ -20,7 +20,7 @@ const baseColumns = [
         sorter: (a, b) => compareValues(a.precursor_mz, b.precursor_mz),
         ellipsis: false,
         width: 110,
-        render: (_, record) => formatValue(record.precursor_mz, true),
+        render: (_, record) => formatValue(record.precursor_mz),
     }, {
         title: 'Delta mass',
         dataIndex: 'delta_mz',
@@ -28,7 +28,7 @@ const baseColumns = [
         sorter: (a, b) => compareValues(a.delta_mz, b.delta_mz),
         ellipsis: false,
         width: 110,
-        render: (_, record) => formatValue(record.delta_mz, true),
+        render: (_, record) => formatValue(record.delta_mz),
     }, {
         title: 'Score',
         dataIndex: 'score',
@@ -37,7 +37,7 @@ const baseColumns = [
         defaultSortOrder: 'descend',
         ellipsis: false,
         width: 110,
-        render: (_, record) => formatValue(record.score, true),
+        render: (_, record) => formatValue(record.score),
     },
 ];
 
@@ -83,13 +83,12 @@ const summarize = (values) => {
 const toSummary = (v) => (v && v.__summary) ? v : summarize([v]);
 
 // Extra metadata can be strings, numbers, arrays etc. and a group holds a summary,
-// so render it defensively. `fixed` forces 3 decimals (m/z, scores).
-const formatValue = (v, fixed = false) => {
+// so render it defensively.
+const formatValue = (v) => {
     const s = toSummary(v);
     if (s.type === "empty") return "";
     if (s.type === "range") {
-        const fmt = (x) => fixed ? x.toFixed(3) : String(x);
-        return s.min === s.max ? fmt(s.min) : `${fmt(s.min)} – ${fmt(s.max)}`;
+        return s.min === s.max ? s.min.toFixed(3) : `${s.min.toFixed(3)} – ${s.max.toFixed(3)}`;
     }
     return s.values.join(", ");
 };
@@ -137,7 +136,7 @@ const groupRows = (rows, groupBy, fields) => {
 const tableToText = (rows, columns) => rows.map(row => {
     const out = {};
     columns.forEach(c => {
-        out[c.title] = c.key === "count" ? (row.count ?? "") : formatValue(row[c.key], FIXED_DECIMALS.includes(c.key));
+        out[c.title] = c.key === "count" ? (row.count ?? "") : formatValue(row[c.key]);
     });
     return out;
 });
