@@ -14,14 +14,6 @@ const atomSearchScore = atom([]);
 
 const baseColumns = [
     {
-        title: 'Delta mass',
-        dataIndex: 'delta_mz',
-        key: 'delta_mz',
-        sorter: (a, b) => compareValues(a.delta_mz, b.delta_mz),
-        ellipsis: false,
-        width: 110,
-        render: (_, record) => formatValue(record.delta_mz),
-    }, {
         title: 'Score',
         dataIndex: 'score',
         key: 'score',
@@ -30,6 +22,14 @@ const baseColumns = [
         ellipsis: false,
         width: 110,
         render: (_, record) => formatValue(record.score),
+    }, {
+        title: 'Delta mass',
+        dataIndex: 'delta_mz',
+        key: 'delta_mz',
+        sorter: (a, b) => compareValues(a.delta_mz, b.delta_mz),
+        ellipsis: false,
+        width: 110,
+        render: (_, record) => formatValue(record.delta_mz),
     },
 ];
 
