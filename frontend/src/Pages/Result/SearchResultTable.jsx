@@ -71,6 +71,9 @@ const summarize = (values) => {
     }
     return { __summary: true, type: "set", values: unique };
 };
+
+// If not yet a summary, summarize. Else just return the summary.
+const toSummary = (v) => (v && v.__summary) ? v : summarize([v]);
 export default () => {
     const [getAtomGlobalSpectrum,] = useAtom(atomGlobalSpectrumData);
     const [getAtomSearchScore, setAtomSearchScore] = useAtom(atomSearchScore);
