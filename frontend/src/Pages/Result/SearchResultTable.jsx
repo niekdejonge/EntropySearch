@@ -78,13 +78,17 @@ const summarize = (values) => {
 // If not yet a summary, summarize. Else just return the summary.
 const toSummary = (v) => (v && v.__summary) ? v : summarize([v]);
 
+
+function formatNumber(n) {
+    return Number.isInteger(n) ? String(n) : n.toFixed(3);
+}
 // Extra metadata can be strings, numbers, arrays etc. and a group holds a summary,
 // so render it defensively.
 const formatValue = (v) => {
     const s = toSummary(v);
     if (s.type === "empty") return "";
     if (s.type === "range") {
-        return s.min === s.max ? s.min.toFixed(3) : `${s.min.toFixed(3)} – ${s.max.toFixed(3)}`;
+        return s.min === s.max ? formatNumber(s.min) : `${formatNumber(s.min)} – ${formatNumber(s.max)}`;
     }
     return s.values.join(", ");
 };
