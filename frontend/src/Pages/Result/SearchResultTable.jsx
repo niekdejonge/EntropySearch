@@ -184,7 +184,7 @@ export default () => {
 
     ////////////////////////////////////////////////////////////////////////////////
     const createColumn = (field) => ({
-        title: field.replace(/^library-/, ""),
+        title: field.replace(/^library-/, "").replace("_", " ").replace("mz", "m/z"),
         dataIndex: field,
         key: field,
         ellipsis: true,
