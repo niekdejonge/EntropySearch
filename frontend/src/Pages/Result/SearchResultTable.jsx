@@ -14,14 +14,6 @@ const atomSearchScore = atom([]);
 
 const baseColumns = [
     {
-        title: 'Precursor m/z',
-        dataIndex: 'precursor_mz',
-        key: 'precursor_mz',
-        sorter: (a, b) => compareValues(a.precursor_mz, b.precursor_mz),
-        ellipsis: false,
-        width: 110,
-        render: (_, record) => formatValue(record.precursor_mz),
-    }, {
         title: 'Delta mass',
         dataIndex: 'delta_mz',
         key: 'delta_mz',
@@ -41,13 +33,10 @@ const baseColumns = [
     },
 ];
 
-// Fields that already have a dedicated fixed column, so we don't offer
-// them again in the "extra metadata" picker.
-const FIXED_FIELDS = ["precursor_mz"];
 
 ////////////////////////////////////////////////////////////////////////////////
 // Helpers for grouping (plain JavaScript, no React)
-// Columns that are always numbers and are shown with 3 decimals
+// Numbers are shown with 3 decimals
 const FIXED_DECIMALS = ["precursor_mz", "delta_mz", "score"];
 
 const isEmpty = (v) => v === undefined || v === null || v === "";
@@ -182,11 +171,10 @@ export default () => {
         rows.forEach(([libSpec]) => {
             Object.keys(libSpec || {}).forEach(k => fieldSet.add(k));
         });
-        FIXED_FIELDS.forEach(k => fieldSet.delete(k));
         return Array.from(fieldSet).sort();
     }, [getAtomSearchScore, stateSearchType]);
 
-    const [stateSelectedFields, setStateSelectedFields] = useState([]);
+    const [stateSelectedFields, setStateSelectedFields] = useState(["precursor_mz"]);
 
     // Field to group on. Ignored if the current results do not have that field.
     const [stateGroupBy, setStateGroupBy] = useState(undefined);
@@ -238,8 +226,6 @@ export default () => {
                     score: info[1],
                     delta_mz: info[0].precursor_mz - getAtomGlobalSpectrum.precursor_mz,
 
-                    precursor_mz: info[0].precursor_mz,
-                    idx: info[0]["library-idx"],
                     charge: getAtomGlobalSpectrum.charge
                 };
                 fields.forEach(field => {
