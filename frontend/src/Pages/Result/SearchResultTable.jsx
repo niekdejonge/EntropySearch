@@ -45,11 +45,31 @@ const baseColumns = [
 // them again in the "extra metadata" picker.
 const FIXED_FIELDS = ["precursor_mz"];
 
-// Extra metadata can be strings, numbers, arrays etc. so render it defensively.
-const formatValue = (v) => {
-    if (v === undefined || v === null) return "";
-    if (typeof v === "object") return JSON.stringify(v);
-    return String(v);
+// Summarise the values of one field inside one group. It is only run when length is larger than 1. So it is also a flag that it is a group. 
+const summarize = (values) => {
+    const nonEmptyValues = values.filter(v => !isEmpty(v));
+    if (nonEmptyValues.length === 0) {
+        return { __summary: true, type: "empty" };
+    }
+    if (nonEmptyValues.every(v => typeof v === "number")) {
+        let min = Infinity;
+        let max = -Infinity;
+        for (const v of nonEmptyValues) {
+            if (v < min) min = v;
+            if (v > max) max = v;
+        }
+        return { __summary: true, type: "range", min: min, max: max };
+    }
+    const seen = new Set();
+    const unique = [];
+    for (const v of nonEmptyValues) {
+        const text = typeof v === "object" ? JSON.stringify(v) : String(v);
+        if (!seen.has(text)) {
+            seen.add(text);
+            unique.push(text);
+        }
+    }
+    return { __summary: true, type: "set", values: unique };
 };
 export default () => {
     const [getAtomGlobalSpectrum,] = useAtom(atomGlobalSpectrumData);
