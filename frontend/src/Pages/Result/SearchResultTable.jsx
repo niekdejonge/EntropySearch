@@ -17,33 +17,40 @@ const baseColumns = [
         title: 'Precursor m/z',
         dataIndex: 'precursor_mz',
         key: 'precursor_mz',
-        sorter: (a, b) => a.precursor_mz - b.precursor_mz,
+        sorter: (a, b) => compareValues(a.precursor_mz, b.precursor_mz),
         ellipsis: false,
-        width: 80,
-        render: (_, record) => record.precursor_mz.toFixed(3),
+        width: 110,
+        render: (_, record) => formatValue(record.precursor_mz, true),
     }, {
         title: 'Delta mass',
         dataIndex: 'delta_mz',
         key: 'delta_mz',
-        sorter: (a, b) => a.delta_mz - b.delta_mz,
+        sorter: (a, b) => compareValues(a.delta_mz, b.delta_mz),
         ellipsis: false,
-        width: 80,
-        render: (_, record) => record.delta_mz.toFixed(3),
+        width: 110,
+        render: (_, record) => formatValue(record.delta_mz, true),
     }, {
         title: 'Score',
         dataIndex: 'score',
         key: 'score',
-        sorter: (a, b) => a.score - b.score,
+        sorter: (a, b) => compareValues(a.score, b.score),
         defaultSortOrder: 'descend',
         ellipsis: false,
-        width: 60,
-        render: (_, record) => record.score.toFixed(3),
+        width: 110,
+        render: (_, record) => formatValue(record.score, true),
     },
 ];
 
 // Fields that already have a dedicated fixed column, so we don't offer
 // them again in the "extra metadata" picker.
 const FIXED_FIELDS = ["precursor_mz"];
+
+////////////////////////////////////////////////////////////////////////////////
+// Helpers for grouping (plain JavaScript, no React)
+// Columns that are always numbers and are shown with 3 decimals
+const FIXED_DECIMALS = ["precursor_mz", "delta_mz", "score"];
+
+const isEmpty = (v) => v === undefined || v === null || v === "";
 
 // Summarise the values of one field inside one group. It is only run when length is larger than 1. So it is also a flag that it is a group. 
 const summarize = (values) => {
@@ -74,6 +81,67 @@ const summarize = (values) => {
 
 // If not yet a summary, summarize. Else just return the summary.
 const toSummary = (v) => (v && v.__summary) ? v : summarize([v]);
+
+// Extra metadata can be strings, numbers, arrays etc. and a group holds a summary,
+// so render it defensively. `fixed` forces 3 decimals (m/z, scores).
+const formatValue = (v, fixed = false) => {
+    const s = toSummary(v);
+    if (s.type === "empty") return "";
+    if (s.type === "range") {
+        const fmt = (x) => fixed ? x.toFixed(3) : String(x);
+        return s.min === s.max ? fmt(s.min) : `${fmt(s.min)} – ${fmt(s.max)}`;
+    }
+    return s.values.join(", ");
+};
+
+// Sort ranges by their maximum, everything else as text
+const compareValues = (a, b) => {
+    const sa = toSummary(a);
+    const sb = toSummary(b);
+    if (sa.type === "range" && sb.type === "range") {
+        return sa.max - sb.max;
+    }
+    return formatValue(a).localeCompare(formatValue(b), undefined, { numeric: true });
+};
+
+// Combine rows that share the same value in `groupBy` into one row.
+// A group with several rows gets those rows as `children` (and shows them as
+// expandable sub-rows). Rows without a value to group on stay on their own row.
+const groupRows = (rows, groupBy, fields) => {
+    // Check if a metadata keys to group on is selected otherwise just show rows as normal.
+    if (!groupBy) {
+        return rows;
+    }
+    const groups = new Map();
+    rows.forEach(row => {
+        const value = row[groupBy];
+        const key = isEmpty(value) ? "row:" + row.key : "group:" + JSON.stringify(value);
+        if (!groups.has(key)) {
+            groups.set(key, []);
+        }
+        groups.get(key).push(row);
+    });
+    return Array.from(groups, ([key, members]) => {
+        if (members.length === 1) {
+            return { ...members[0], count: 1 };
+        }
+        const groupRow = { key: key, count: members.length, children: members };
+        fields.forEach(field => {
+            groupRow[field] = summarize(members.map(m => m[field]));
+        });
+        return groupRow;
+    });
+};
+
+// The text a table shows, as one object per row (used for the CSV export of grouped results)
+const tableToText = (rows, columns) => rows.map(row => {
+    const out = {};
+    columns.forEach(c => {
+        out[c.title] = c.key === "count" ? (row.count ?? "") : formatValue(row[c.key], FIXED_DECIMALS.includes(c.key));
+    });
+    return out;
+});
+
 export default () => {
     const [getAtomGlobalSpectrum,] = useAtom(atomGlobalSpectrumData);
     const [getAtomSearchScore, setAtomSearchScore] = useAtom(atomSearchScore);
@@ -119,19 +187,33 @@ export default () => {
     ////////////////////////////////////////////////////////////////////////////////
     // Fixed columns plus one column per selected extra field
     const columns = useMemo(() => [
+        // If groupby is set add the groupby column and a count column
+        ...(groupBy ? [{
+            title: groupBy.replace(/^library-/, ""),
+            dataIndex: groupBy,
+            key: groupBy,
+            ellipsis: true,
+            width: 150,
+            render: (_, record) => formatValue(record[groupBy]),
+            sorter: (a, b) => compareValues(a[groupBy], b[groupBy]),
+        }, {
+            title: 'Count',
+            key: 'count',
+            width: 70,
+            render: (_, record) => record.count ?? "",
+            sorter: (a, b) => (a.count ?? 0) - (b.count ?? 0),
+        }] : []),
         ...baseColumns,
-        ...stateSelectedFields.map(field => ({
+        ...stateSelectedFields.filter(field => field !== groupBy).map(field => ({
             title: field.replace(/^library-/, ""),
             dataIndex: field,
             key: field,
             ellipsis: true,
             width: 150,
             render: (_, record) => formatValue(record[field]),
-            sorter: (a, b) => String(a[field] ?? "").localeCompare(
-                String(b[field] ?? ""), undefined, { numeric: true }
-            ),
+            sorter: (a, b) => compareValues(a[field], b[field]),
         })),
-    ], [stateSelectedFields]);
+    ], [stateSelectedFields, groupBy]);
 
     ////////////////////////////////////////////////////////////////////////////////
     // Generate table data
@@ -140,6 +222,8 @@ export default () => {
     useEffect(() => {
         const currentSearchScore = getAtomSearchScore[stateSearchType] || [];
         if (currentSearchScore.length > 0) {
+            // The group field is needed on every row, even if it is not shown as a column
+            const fields = groupBy ? [...stateSelectedFields, groupBy] : stateSelectedFields;
             const tableData = currentSearchScore.map((info, index) => {
                 const row = {
                     key: `${index}`,
@@ -150,23 +234,30 @@ export default () => {
                     idx: info[0]["library-idx"],
                     charge: getAtomGlobalSpectrum.charge
                 };
-                stateSelectedFields.forEach(field => {
+                fields.forEach(field => {
                     row[field] = info[0][field];
                 });
                 return row;
             });
             console.log(tableData);
-            setStateTableData(tableData);
+            setStateTableData(groupRows(tableData, groupBy, [...FIXED_DECIMALS, ...fields]));
         } else {
             setStateTableData([])
         }
-    }, [getAtomSearchScore, stateSearchType, stateSelectedFields])
+    }, [getAtomSearchScore, stateSearchType, stateSelectedFields, groupBy])
+
+    // Which groups are open. Collapse everything when the results or the grouping change.
+    const [stateExpandedKeys, setStateExpandedKeys] = useState([]);
+    useEffect(() => {
+        setStateExpandedKeys([]);
+    }, [getAtomSearchScore, stateSearchType, groupBy]);
 
     const [stateTextFile, setStateTextFile] = useState(null);
     useEffect(() => {
         if (stateTableData && stateTableData.length > 0) {
             const parser = new Parser();
-            const csv = parser.parse(stateTableData);
+            // Grouped results contain summaries, so export the text the table shows
+            const csv = parser.parse(groupBy ? tableToText(stateTableData, columns) : stateTableData);
             const data = new Blob([csv], { type: 'text/plain' });
             if (stateTextFile !== null) {
                 window.URL.revokeObjectURL(stateTextFile);
@@ -220,9 +311,18 @@ export default () => {
                 <VirtualTable
                     vid={"spectra-result-table"}
                     // loading={stateScanData.status === "loading"}
+                    expandable={{
+                        expandRowByClick: true,
+                        expandedRowKeys: stateExpandedKeys,
+                        onExpandedRowsChange: setStateExpandedKeys,
+                    }}
                     onRow={record => ({
                         onClick: event => {
                             console.log(record);
+                            // A group row (it has children) only expands. Any other row selects its library spectrum.
+                            if (record.children) {
+                                return;
+                            }
                             setAtomSelectedLibrary({ charge: 0, idx: record.idx });
                         },
                     })}
