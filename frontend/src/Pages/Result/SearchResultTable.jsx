@@ -33,11 +33,9 @@ const baseColumns = [
     },
 ];
 
-
 ////////////////////////////////////////////////////////////////////////////////
 // Helpers for grouping (plain JavaScript, no React)
 // Numbers are shown with 3 decimals
-const FIXED_DECIMALS = ["precursor_mz", "delta_mz", "score"];
 
 const isEmpty = (v) => v === undefined || v === null || v === "";
 
@@ -236,7 +234,7 @@ export default () => {
                 return row;
             });
             console.log(tableData);
-            setStateTableData(groupRows(tableData, groupBy, [...FIXED_DECIMALS, ...fields]));
+            setStateTableData(groupRows(tableData, groupBy, [...baseColumns.map(x => x["key"]), ...fields]));
         } else {
             setStateTableData([])
         }
