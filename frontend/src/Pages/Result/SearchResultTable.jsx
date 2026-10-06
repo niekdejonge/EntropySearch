@@ -52,16 +52,25 @@ const FIXED_DECIMALS = ["precursor_mz", "delta_mz", "score"];
 
 const isEmpty = (v) => v === undefined || v === null || v === "";
 
+// Plain numbers, and strings that are entirely a decimal number ("12.5", "1e-3"), count as numbers
+const NUMBER_PATTERN = /^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/;
+const toNumber = (v) => {
+    if (typeof v === "number") return v;
+    if (typeof v === "string" && NUMBER_PATTERN.test(v.trim())) return Number(v);
+    return NaN;
+};
+
 // Summarise the values of one field inside one group. It is only run when length is larger than 1. So it is also a flag that it is a group. 
 const summarize = (values) => {
     const nonEmptyValues = values.filter(v => !isEmpty(v));
     if (nonEmptyValues.length === 0) {
         return { __summary: true, type: "empty" };
     }
-    if (nonEmptyValues.every(v => typeof v === "number")) {
+    const numbers = nonEmptyValues.map(toNumber);
+    if (numbers.every(n => !Number.isNaN(n))) {
         let min = Infinity;
         let max = -Infinity;
-        for (const v of nonEmptyValues) {
+        for (const v of numbers) {
             if (v < min) min = v;
             if (v > max) max = v;
         }
