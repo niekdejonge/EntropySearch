@@ -181,7 +181,15 @@ export default () => {
     const groupBy = stateAvailableFields.includes(stateGroupBy) ? stateGroupBy : undefined;
 
     ////////////////////////////////////////////////////////////////////////////////
-    // Fixed columns plus one column per selected extra field
+    const createColumn = (field) => ({
+        title: field.replace(/^library-/, ""),
+        dataIndex: field,
+        key: field,
+        ellipsis: true,
+        width: 150,
+        render: (_, record) => formatValue(record[field]),
+        sorter: (a, b) => compareValues(a[field], b[field]),
+    });
     const columns = useMemo(() => [
         // If groupby is set add the groupby column and a count column
         ...(groupBy ? [{
@@ -200,15 +208,11 @@ export default () => {
             sorter: (a, b) => (a.count ?? 0) - (b.count ?? 0),
         }] : []),
         ...baseColumns,
-        ...stateSelectedFields.filter(field => field !== groupBy).map(field => ({
-            title: field.replace(/^library-/, ""),
-            dataIndex: field,
-            key: field,
-            ellipsis: true,
-            width: 150,
-            render: (_, record) => formatValue(record[field]),
-            sorter: (a, b) => compareValues(a[field], b[field]),
-        })),
+
+        ...stateSelectedFields
+            .filter(field => field !== groupBy)
+            .map(createColumn),
+
     ], [stateSelectedFields, groupBy]);
 
     ////////////////////////////////////////////////////////////////////////////////
