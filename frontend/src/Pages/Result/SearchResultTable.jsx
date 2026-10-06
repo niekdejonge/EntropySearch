@@ -221,16 +221,14 @@ export default () => {
             // The group field is needed on every row, even if it is not shown as a column
             const fields = groupBy ? [...stateSelectedFields, groupBy] : stateSelectedFields;
             const tableData = currentSearchScore.map((info, index) => {
-                const row = {
-                    key: `${index}`,
-                    score: info[1],
-                    delta_mz: info[0].precursor_mz - getAtomGlobalSpectrum.precursor_mz,
-
-                    charge: getAtomGlobalSpectrum.charge
-                };
+                const row = {};
                 fields.forEach(field => {
                     row[field] = info[0][field];
                 });
+                row["key"] = `${index}`
+                row["score"] = info[1]
+                row["delta_mz"] = info[0].precursor_mz - getAtomGlobalSpectrum.precursor_mz
+                row["idx"] = info[0]["library-idx"]
                 return row;
             });
             console.log(tableData);
