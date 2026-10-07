@@ -147,6 +147,18 @@ class EntropySearch:
                     if k != "peaks"
                 }
                 library_spec["library-idx"] = int(library_idx)
+                file_path = library_spec.get("file_path")
+
+                if isinstance(file_path, (str, Path)):
+                    file_path = Path(file_path)
+                    library_spec["file_name"] = file_path.name
+                    library_spec["folder"] = (
+                        file_path.parts[5] if len(file_path.parts) > 5 else ""
+                    )
+                else:
+                    library_spec["file_name"] = ""
+                    library_spec["folder"] = ""
+
                 new_data.append([library_spec, score])
             spectrum_result[search_type] = new_data
 
