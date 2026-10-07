@@ -102,9 +102,8 @@ class EntropySearch:
                     max_idx = np.argmax(top_n_score)
                     # Get the library spectrum
                     library_spec = self.spectral_library[top_n_idx[max_idx]]
-                    # Assign name
-                    result["name"] = library_spec.get("library-name", "")
-                    result["adduct"] = library_spec.get("library-precursor_type", "")
+                    # # Assign name
+                    result["annotation"] = library_spec.get("compound_name", "")
 
                 result[search_type] = [
                     [spec["scan"], i, score_array[i]] for i in top_n_idx

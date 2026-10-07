@@ -21,10 +21,10 @@ const columnsTemplate = [
         render: (_, record) => record.scan || "NA",
         width: 70,
     }, {
-        title: "Name",
-        dataIndex: "name",
-        render: (_, record) => record.name || "",
-        sorter: (a, b) => (a.name || "").localeCompare(b.name || ""),
+        title: "Annotation",
+        dataIndex: "annotation",
+        render: (_, record) => record.annotation || "",
+        sorter: (a, b) => (a.annotation || "").localeCompare(b.annotation || ""),
         ellipsis: false,
         width: 200,
     }, {
@@ -71,7 +71,7 @@ const baseColumns = columnsTemplate.map(k => ({
 // Fields that already have a dedicated column (or are internal), so we don't
 // offer them again in the "extra metadata" picker.
 const FIXED_FIELDS = [
-    "key", "scan", "name", "rt", "precursor_mz",
+    "key", "scan", "annotation", "rt", "precursor_mz",
     "identity_search-score", "open_search-score", "neutral_loss_search-score", "hybrid_search-score",
 ];
 
