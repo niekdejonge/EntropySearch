@@ -1,3 +1,7 @@
+# Forked EntropySearch
+This is a fork of YanyeLi's EntropySearch. A graphical user interface to search in mass spec libraries. 
+This fork is used to make improvements to the GUI. General improvements valuable for the community are merged with the original package. While specific changes for specific use cases are only merged here. 
+
 # EntropySearch
 [![Build and Deploy](https://github.com/YuanyueLi/EntropySearch/actions/workflows/build_and_release_linux.yaml/badge.svg?branch=main)](https://github.com/YuanyueLi/EntropySearch/actions/workflows/build_and_release_linux.yaml)
 
