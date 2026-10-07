@@ -8,3 +8,4 @@ pyinstaller-hooks-contrib==2023.3
 pymzml==2.5.2
 uvicorn==0.22.0
 lxml==4.9.2
+psims==1.4.0 #required for loading mzml, since pyteomics 5.0
