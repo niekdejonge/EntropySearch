@@ -11,11 +11,6 @@ import { atomGlobalRunData, atomSelectedScan, atomGlobalSpectrumData } from "../
 
 const columnsTemplate = [
     {
-        title: "",
-        key: "idx",
-        render: (text, record, index) => `${index + 1}`,
-        width: 30,
-    }, {
         title: "Scan",
         dataIndex: "scan",
         render: (_, record) => record.scan || "NA",
