@@ -1,4 +1,5 @@
-const {app, BrowserWindow, globalShortcut} = require('electron')
+const { app, BrowserWindow, globalShortcut } = require('electron')
+const fs = require('fs')
 const gotTheLock = app.requestSingleInstanceLock()
 
 let backgroundProcess
@@ -28,13 +29,21 @@ function createWindow() {
     // Select based on the OS
     let backend = ""
     if (process.platform === 'win32') {
-        backend = path.join(process.cwd(), 'entropy_search_backend.exe')
+        // The backend is installed next to the app's own .exe, wherever the app was started from
+        backend = path.join(path.dirname(app.getPath('exe')), 'entropy_search_backend.exe')
     } else if (process.platform === 'darwin') {
         backend = path.join(__dirname, '../../../entropy_search_backend')
     } else {
         backend = 'entropy_search_backend'
     }
-    backgroundProcess = require('child_process').exec(backend, (error, stdout, stderr) => {
+
+    // A packaged app has no console, so make a missing backend visible
+    if (path.isAbsolute(backend) && !fs.existsSync(backend)) {
+        dialog.showErrorBox('Backend not found', `Expected the backend at:\n${backend}`)
+    }
+
+    // execFile starts the program directly. exec goes through cmd.exe, which breaks on paths with spaces
+    backgroundProcess = require('child_process').execFile(backend, (error, stdout, stderr) => {
         if (error) {
             console.error(`exec error: ${error}`)
             return
@@ -42,7 +51,6 @@ function createWindow() {
         console.log(`stdout: ${stdout}`)
         console.error(`stderr: ${stderr}`)
     })
-
     // Open the DevTools.
     // win.webContents.openDevTools()
 
@@ -97,7 +105,7 @@ if (!gotTheLock) {
 
         backgroundProcess.kill()
 
-        const {exec} = require("child_process");
+        const { exec } = require("child_process");
         // Kill the backend process based on the OS
         if (process.platform === 'win32') {
             exec("taskkill /f /t /im entropy_search_backend.exe", (err, stdout, stderr) => {
