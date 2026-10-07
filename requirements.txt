@@ -3,8 +3,8 @@ fastapi==0.95.1
 ms-entropy[all]
 msgpack==1.0.5
 numpy==2.2.6
-pyinstaller==5.11.0
-pyinstaller-hooks-contrib==2023.3
+pyinstaller==5.12.0
+pyinstaller-hooks-contrib==2023.4
 pymzml==2.5.2
 uvicorn==0.22.0
 lxml==4.9.2
