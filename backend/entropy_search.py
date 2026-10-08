@@ -153,7 +153,7 @@ class EntropySearch:
                     file_path = Path(file_path)
                     library_spec["file_name"] = file_path.name
                     library_spec["folder"] = (
-                        file_path.parts[5] if len(file_path.parts) > 5 else ""
+                        file_path.parts[4] if len(file_path.parts) > 5 else ""
                     )
                 else:
                     library_spec["file_name"] = ""
