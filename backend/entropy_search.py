@@ -230,10 +230,9 @@ class EntropySearch:
         }
         for spec_num, spec in enumerate(read_one_spectrum(file_query)):
             try:
-                if spec_num % 100 == 0:
-                    self.status["message"] = (
-                        f"Reading {file_query.name}... {spec_num} spectra read"
-                    )
+                self.status["message"] = (
+                    f"Searching {file_query.name}... {spec_num} spectra processed"
+                )
                 if spec.pop("_ms_level", 2) != 2:
                     continue
 
